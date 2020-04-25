@@ -148,6 +148,8 @@ def download_all_ebooks(driver, txt_file="Springer All Free Ebooks.txt", delay=2
             if background:
                 try:
                     download_button = driver.find_element_by_css_selector("a[title='Download this book in PDF format']")
+                    # Move/Scroll to download button first to avoid click intercept errors
+                    ActionChains(driver).move_to_element(download_button).perform()
                     download_button.click()
                     time.sleep(delay)
 
@@ -171,6 +173,8 @@ def download_all_ebooks(driver, txt_file="Springer All Free Ebooks.txt", delay=2
                     download_button = driver.find_element_by_css_selector("a[title='Download this book in PDF format']")
                     # Sleep to make sure all the context_click options appear
                     time.sleep(delay)
+                    # Move/Scroll to download button first to avoid click intercept errors
+                    ActionChains(driver).move_to_element(download_button).perform()
                     # Right click the "Download book PDF" button
                     ActionChains(driver).context_click(download_button).perform()
 
@@ -304,6 +308,9 @@ if __name__ == "__main__":
 
     options.add_experimental_option('prefs', profile)
     driver = webdriver.Chrome(driver_location, chrome_options=options)
+
+    # Maximize window to prevent click intercepted errors (because the button is not visible)
+    driver.maximize_window()
 
     # Activating function
 
