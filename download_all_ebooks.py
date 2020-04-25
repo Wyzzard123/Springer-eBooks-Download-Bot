@@ -203,6 +203,8 @@ def download_all_ebooks(driver, txt_file="Springer All Free Ebooks.txt", delay=2
 
 if __name__ == "__main__":
     import sys
+    import stat
+    import os
     from sys import platform
 
     # Parsing command line arguments.
@@ -262,9 +264,20 @@ if __name__ == "__main__":
         system_os = "Windows"
     elif platform == "darwin":
         driver_location = "webdrivers/mac/chromedriver"
+        # Set to executable by owner (This already works)
+        os.chmod(driver_location, stat.S_IEXEC)
+
+        # Set to read write executable by all (If the above permissions do not work, uncomment the line below this one)
+        # os.chmod(driver_location, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+
         system_os = "Mac OS X"
     elif platform == "linux" or platform == "linux2":
         driver_location = "webdrivers/linux/chromedriver"
+        # Set to executable by owner
+        os.chmod(driver_location, stat.S_IEXEC)
+
+        # Set to read write executable by all (If the above permissions do not work, uncomment the line below this one)
+        # os.chmod(driver_location, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
         system_os = "Linux"
     print("OS:", system_os)
     print("Driver Location:", driver_location)
