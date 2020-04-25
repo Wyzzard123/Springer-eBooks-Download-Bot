@@ -1,4 +1,5 @@
 import time
+import os
 
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
@@ -76,7 +77,7 @@ def stay_on_correct_tab(driver, link, text_pattern="/book/"):
         return True
 
 
-def download_all_ebooks(txt_file="Springer All Free Ebooks.txt", delay=2):
+def download_all_ebooks(driver, txt_file="Springer All Free Ebooks.txt", delay=2, background=True, folder=None):
     """
     Example Usage:            python download_all_ebooks.py [delay] [reference file name with quotes]
 
@@ -101,8 +102,19 @@ def download_all_ebooks(txt_file="Springer All Free Ebooks.txt", delay=2):
     - https://link.springer.com/book/10.1007%2F978-3-319-32185-1 (Business Statistics for Competitive Advantage with
       Excel 2016)
 
+    :param driver:      A Selenium webdriver. This is passed from outside the function to prevent the webdriver from
+                        closing before all files have finished downloading. This means that the browser window must be
+                        closed manually.
+    :type driver:       webdriver
+    :param folder:      The path to the download folder. If none, this is not set and the system default is used.
+    :type folder:       str
+    :param background:  If False, this uses PyAutoGUI and operates in the foreground. In other words, one cannot use
+                        his computer while operating the bot.
+
+                        If True, this only uses Selenium and operates in the background.
+    :type background:   bool
     :param delay:       Passed in as a command line argument. Delay in seconds. If not passed in, defaults to 2.
-                        Any lower than 2 and the program will likely break.
+                        Any lower than 2 and the program will likely break when not running in background mode.
 
                         Usage: python download_all_ebooks.py [delay/s]
                         If delay is not numeric, the code will raise an error.
@@ -120,69 +132,154 @@ def download_all_ebooks(txt_file="Springer All Free Ebooks.txt", delay=2):
     """
 
     with open(txt_file, 'r') as f:
-        driver = webdriver.Chrome("webdrivers/windows/chromedriver.exe")
+        # See https://stackoverflow.com/questions/43149534/selenium-webdriver-how-to-download-a-pdf-file-with-python
+        if background:
+            print("Running in background mode")
+        # DEPRECATED
+        else:
+            print("Running in foreground mode (DEPRECATED)")
         driver.implicitly_wait(10)
 
         for line_no, link in enumerate(f):
             driver.get(link)
             print(line_no, link)
             print("Current URL:", driver.current_url)
+            if background:
+                try:
+                    download_button = driver.find_element_by_css_selector("a[title='Download this book in PDF format']")
+                    download_button.click()
+                    time.sleep(delay)
 
-            # Switch to correct tab
-            # TODO - This works but the file dialog doesn't go away or get handled. Handle this.
-            stay_on_correct_tab(driver, link)
-            # if "/book/" not in driver.current_url:
-            #     print("Driver in wrong tab. Switching back.")
-            #     # Switch back to active tab in case we accidentally opened a new tab
-            #     driver.switch_to.window(driver.current_window_handle)
+                except NoSuchElementException as e:
+                    print("NoSuchElementException:", e)
+                    print("Book might not be downloadable for free:", driver.title)
+                    print("Moving on")
+                    continue
 
-            try:
-                download_button = driver.find_element_by_css_selector("a[title='Download this book in PDF format']")
-                # Sleep to make sure all the context_click options appear
-                time.sleep(delay)
-                # Right click the "Download book PDF" button
-                ActionChains(driver).context_click(download_button).perform()
+            # DEPRECATED
+            elif not background:
+                # Switch to correct tab
+                # TODO - This works but the file dialog doesn't go away or get handled. Handle this.
+                stay_on_correct_tab(driver, link)
+                # if "/book/" not in driver.current_url:
+                #     print("Driver in wrong tab. Switching back.")
+                #     # Switch back to active tab in case we accidentally opened a new tab
+                #     driver.switch_to.window(driver.current_window_handle)
 
-                # Give time for context menu to appear before pressing down
-                time.sleep(delay)
+                try:
+                    download_button = driver.find_element_by_css_selector("a[title='Download this book in PDF format']")
+                    # Sleep to make sure all the context_click options appear
+                    time.sleep(delay)
+                    # Right click the "Download book PDF" button
+                    ActionChains(driver).context_click(download_button).perform()
 
-                for _ in range(4):
-                    # Press down until we're at "Save Link As"
-                    pyautogui.press('down')
+                    # Give time for context menu to appear before pressing down
+                    time.sleep(delay)
 
-                # Sleep to ensure the next press for "enter" registers for the context menu, not the Download Button
-                # Clicking the Download Button instead will cause us to open a new window
-                time.sleep(delay)
+                    for _ in range(4):
+                        # Press down until we're at "Save Link As"
+                        pyautogui.press('down')
 
-                # Press Enter in the context menu to save link as
-                pyautogui.press('enter')
-                time.sleep(delay)
+                    # Sleep to ensure the next press for "enter" registers for the context menu, not the Download Button
+                    # Clicking the Download Button instead will cause us to open a new window
+                    time.sleep(delay)
 
-                # Press enter again to save to the default folder
-                pyautogui.press('enter')
-            except NoSuchElementException as e:
-                print("NoSuchElementException:", e)
-                print("Book might not be downloadable for free:", driver.title)
-                print("Moving on")
-                continue
+                    # Press Enter in the context menu to save link as
+                    pyautogui.press('enter')
+                    time.sleep(delay)
+
+                    # Press enter again to save to the default folder
+                    pyautogui.press('enter')
+                except NoSuchElementException as e:
+                    print("NoSuchElementException:", e)
+                    print("Book might not be downloadable for free:", driver.title)
+                    print("Moving on")
+                    continue
+
         # Allow time to leave webdriver open to download the last file
-        time.sleep(60)
+        time.sleep(120)
 
 
 if __name__ == "__main__":
     import sys
 
+    # Parsing command line arguments.
     if len(sys.argv) > 1:
-        if not sys.argv[1].isnumeric():
-            raise ValueError("Usage: python download_all_ebooks.py [delay/s]")
-        delay = int(sys.argv[1])
+        folder = sys.argv[1]
+        if not os.path.isdir(folder):
+            raise Exception("Usage: python download_all_ebooks.py [download folder] [txt_file] [delay/s] [background]\n"
+                            "The first argument should a directory for your downloaded files.")
+    else:
+        folder = None
+    print("Download Folder:", folder)
+
+    if len(sys.argv) > 2:
+        txt_file = sys.argv[2]
+        if not os.path.isfile(txt_file):
+            raise Exception("Usage: python download_all_ebooks.py [download folder] [txt_file] [delay/s] [background]\n"
+                            "The second argument should be the txt_file to reference. The provided file does not exist. "
+                            "By default this is 'Springer All Free Ebooks.txt'."
+                            )
+    else:
+        txt_file = "Springer All Free Ebooks.txt"
+        if not os.path.isfile(txt_file):
+            raise Exception("Did you delete/rename/move the file 'Springer All Free Ebooks.txt'?")
+    print("Reference Text File:", txt_file)
+
+    if len(sys.argv) > 3:
+        if not sys.argv[3].isnumeric():
+            raise ValueError("Usage: python download_all_ebooks.py [download folder] [txt_file] [delay/s] [background]\n"
+                             "The third argument should be a numeric value with the delay in seconds. "
+                             "By default this is 2.")
+        delay = int(sys.argv[3])
     else:
         delay = 2
     print("Delay:", delay)
 
-    if len(sys.argv) > 2:
-        txt_file = sys.argv[2]
+    if len(sys.argv) > 4:
+        true_values = ["true", "t"]
+        false_values = ["false", "f"]
+        if sys.argv[4].lower() in true_values:
+            background = True
+        elif sys.argv[4].lower() in false_values:
+            background = False
+        else:
+            raise ValueError("Usage: python download_all_ebooks.py [download folder] [txt_file] [delay/s] [background]\n"
+                             "The fourth argument should be true/t or false/f, and indicates whether the program runs"
+                             "in the background or not. By default this is True.")
     else:
-        txt_file = "Springer All Free Ebooks.txt"
-    print("Reference Text File:", txt_file)
-    download_all_ebooks(txt_file=txt_file, delay=delay)
+        background = True
+    print("Running in Background:", background)
+
+    # Setting Driver options
+
+    # Opening driver outside main function to allow it to stay open after downloading, in case not every file is
+    # done downloading after clicking the last download button.
+    driver_location = "webdrivers/windows/chromedriver.exe"
+    options = webdriver.ChromeOptions()
+
+    profile = {
+        "plugins.plugins_list":
+        # Disable Chrome's PDF Viewer
+            [{"enabled": False, "name": "Chrome PDF Viewer"}],
+        "download.extensions_to_open": "applications/pdf",
+        # To auto download the file
+        "download.prompt_for_download": False,
+        # "download.directory_upgrade": True,
+        # It will not show PDF directly in chrome
+        "plugins.always_open_pdf_externally": True,
+    }
+    if folder:
+        if os.path.isdir(folder):
+            profile.update({
+                "download.default_directory": folder
+            })
+        else:
+            raise Exception("Download folder provided does not exist.")
+
+    options.add_experimental_option('prefs', profile)
+    driver = webdriver.Chrome(driver_location, chrome_options=options)
+
+    # Activating function
+
+    download_all_ebooks(driver=driver, folder=folder, txt_file=txt_file, delay=delay, background=background)

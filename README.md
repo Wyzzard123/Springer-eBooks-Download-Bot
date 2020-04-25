@@ -5,44 +5,60 @@ file. The latter is the source of the free ebooks which Springer has given away 
 
 This bot helps to download all 408 of them.
 
+UPDATE on 25/4/2020: The bot now runs completely in the background and is at least 4 times faster. 
+
+You must, however, close the new Chrome window manually.
+
 ## How to Use
+
+Download Python and pip.
+
+Upgrade pip in the command line with the following command:
+``` 
+easy_install -U pip
+```
 
 Install requirements.txt to your virtual or local environment:
 ```
 pip install -r requirements.txt
 ```
 
-Change directory to the repository and run the download_all_ebooks.py script, with two optional arguments:
+Change directory to the repository and run the download_all_ebooks.py script, with four optional arguments:
 
 ```
-python download_all_ebooks.py [optional delay in seconds] [optional reference file name surrounded by quotes]
+python download_all_ebooks.py [Path to download folder surrounded by quotes] [Reference Text File] [Delay/s] [Run in Background ('True' or 'False']
+```
+You do NOT need to add any of the optional arguments.
+
+Unless you use background mode (an older implementation of the code which you can activate using the fourth positional argument),
+you can continue to use your computer during this time.
+
+The code will open a chrome window which will download everything in the background.
+
+Note that you must close the Chrome window manually. This is to prevent the Chrome window from closing prematurely (before your downloads are complete).
+
+## Examples
+Example (using default arguments):
+```
+python download_all_ebooks.py "C:\Downloads\Ebooks"
 ```
 
-Example:
+Example (continuing where we left off if code fails prematurely):
 ```
-python download_all_ebooks.py 5 "Continue Where we left off.txt"
+python download_all_ebooks.py "C:\Downloads\Ebooks" "Springer All Free Ebooks after failure.txt"
 ```
 
-Do *not* touch your computer during this time. You can leave the bot on during lunch or dinner. If you interfere with 
-your computer during this time, the bot may break. 
+Example (using foreground mode with a longer delay):
+```
+python download_all_ebooks.py "C:\Downloads\Ebooks" "Springer All Free Ebooks after failure.txt" 5 false
+```
 
-This is because the bot does not only rely on Selenium, but also 
-PyAutoGUI (Which relies on GUI elements appearing and being in focus).
 
 ## Optional Arguments
 
-### Delay
+### Path to download folder
 
-Set an optional argument for delay between actions (default 2 seconds). 
-
-At minimum, this should be set to 2 seconds. Set it slower if your internet or computer is slower.
-
-Otherwise, the code will break frequently as it relies on various UI elements appearing on the screen before it can move on.
-
-If no argument is passed, this will default to the maximum recommended speed of 2 seconds (approximately 66 minutes to
-download all files). 
-
-Note that this delay is activated 4 times per file download (Updated 24/4/2020 7 PM UTC+8).
+All the PDFs will be sent to this folder.
 
 ### Reference File Name
 
@@ -55,3 +71,37 @@ two which are not actually free:
 - https://link.springer.com/book/10.1007%2F978-3-319-32185-1 (Business Statistics for Competitive Advantage with
       Excel 2016)
 
+### Delay
+
+Set an optional argument for delay between actions (default 2 seconds). 
+
+This does not matter as much if you are running in the default Background mode. See below for notes on delay when not
+running in background mode.
+
+If running in background mode, the bot should take approximately 15 minutes. If not, the bot should take about 66 minutes to download every file.
+
+
+### Background
+
+If you set this to "False" or "F", this will run in the old mode which requires the window to be in focus. This is much 
+slower and not recommended.
+
+By default, this is set to "True" or "T".
+
+If you are using background mode, do *not* touch your computer during this time. You can leave the bot on during lunch or dinner. If you interfere with 
+your computer during this time, the bot may break. 
+
+This is because the bot in background mode does not only rely on Selenium, but also PyAutoGUI (Which relies on GUI elements appearing and being in focus).
+
+#### Delay while in Background Mode
+
+If background is set to "true", take note of the following for the delay argument:
+
+* At minimum, the delay should be set to 2 seconds. Set it slower if your internet or computer is slower.
+
+* Otherwise, the code will break frequently as it relies on various UI elements appearing on the screen before it can move on.
+
+* If no argument is passed, this will default to the maximum recommended speed of 2 seconds (approximately 66 minutes to
+download all files). 
+
+* Note that this delay is activated 4 times per file download (Updated 24/4/2020 7 PM UTC+8) (only 1 time when running in background mode).
