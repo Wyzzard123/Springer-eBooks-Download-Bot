@@ -43,6 +43,12 @@ https://chromedriver.chromium.org/downloads
 
 Then replace the driver for your OS. The code automatically checks for your OS and uses the correct driver accordingly.
 
+## Stopping the Program prematurely
+
+To stop the program prematurely, go to the console and press "Ctrl + C".
+
+To continue where you left off, pass in a reference text file with the remaining links as an argument (second positional argument).
+
 ## Example Usage
 Example (using default arguments):
 ```
