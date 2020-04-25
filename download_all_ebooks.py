@@ -143,6 +143,7 @@ def download_all_ebooks(driver, txt_file="Springer All Free Ebooks.txt", delay=2
         for line_no, link in enumerate(f):
             driver.get(link)
             print(line_no, link)
+            print("Title:", driver.title)
             print("Current URL:", driver.current_url)
             if background:
                 try:
@@ -202,6 +203,7 @@ def download_all_ebooks(driver, txt_file="Springer All Free Ebooks.txt", delay=2
 
 if __name__ == "__main__":
     import sys
+    from sys import platform
 
     # Parsing command line arguments.
     if len(sys.argv) > 1:
@@ -255,7 +257,17 @@ if __name__ == "__main__":
 
     # Opening driver outside main function to allow it to stay open after downloading, in case not every file is
     # done downloading after clicking the last download button.
-    driver_location = "webdrivers/windows/chromedriver.exe"
+    if platform == "win32" or platform == "cygwin":
+        driver_location = "webdrivers/windows/chromedriver.exe"
+        system_os = "Windows"
+    elif platform == "darwin":
+        driver_location = "webdrivers/mac/chromedriver"
+        system_os = "Mac OS X"
+    elif platform == "linux" or platform == "linux2":
+        driver_location = "webdrivers/linux/chromedriver"
+        system_os = "Linux"
+    print("OS:", system_os)
+    print("Driver Location:", driver_location)
     options = webdriver.ChromeOptions()
 
     profile = {

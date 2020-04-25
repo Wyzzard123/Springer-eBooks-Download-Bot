@@ -36,8 +36,14 @@ you can continue to use your computer during this time.
 The code will open a chrome window which will download everything in the background.
 
 Note that you must close the Chrome window manually. This is to prevent the Chrome window from closing prematurely (before your downloads are complete).
+## Driver
 
-## Examples
+If your Google Chrome is not Chrome 81 (Check by going to "Help > About Chrome), download the appropriate driver from here:
+https://chromedriver.chromium.org/downloads
+
+Then replace the driver for your OS. The code automatically checks for your OS and uses the correct driver accordingly.
+
+## Example Usage
 Example (using default arguments):
 ```
 python download_all_ebooks.py "C:\Downloads\Ebooks"
