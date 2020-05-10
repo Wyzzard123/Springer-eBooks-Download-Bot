@@ -1,13 +1,28 @@
-# Selenium Bot to Download All Free Ebooks
+# PDF Downloader (Updated 10/5/2020)
 
-See Springer All Free Ebooks.txt for a list of links extracted by using Excel filters on the "Springer Ebooks.pdf.pdf"
+See Springer All Free Ebooks.txt for a list of links extracted by using Excel filters on the "Springer Ebooks.pdf"
 file. The latter is the source of the free ebooks which Springer has given away due to COVID-19.
 
-This bot helps to download all 408 of them.
+This new version of the script now uses the requests library as well as multithreading. 
+ 
+There is no need for the Selenium webdriver. To use the old version, follow the instructions in Selenium_README.md. To use the old script, use "download_all_ebooks_selenium.py" instead of 
+"download_all_ebooks.py".
 
-UPDATE on 25/4/2020: The bot now runs completely in the background and is at least 4 times faster. 
+This version also uses a text file containing __direct__ download links, instead of links which require Selenium to click 
+a button. This new set of links is at "Springer PDF Direct Download Links.txt".
 
-You must, however, close the new Chrome window manually.
+Every link in the text file is written as "\[title] | \[download link]". For example:
+
+``` 
+Fundamentals of Power Electronics  | https://link.springer.com//content/pdf/10.1007%2Fb100747.pdf
+```
+
+This means that as long as you have a txt file in this format, you can now use download_all_ebooks.py __regardless of which website they come from__
+(not just Springer).
+
+Note that some books are no longer free. At the time of writing, the 408 books have decreased to 387.
+
+In order to generate such a list of txt files for a different website, you may refactor the new script called "write_direct_pdf_links_to_txt_file.py".
 
 ## How to Use
 
@@ -23,97 +38,30 @@ Install requirements.txt to your virtual or local environment:
 pip install -r requirements.txt
 ```
 
-Change directory to the repository and run the download_all_ebooks.py script, with four optional arguments:
+Change directory to the repository and run the download_all_ebooks.py script, with two optional arguments:
 
 ```
-python download_all_ebooks.py [Path to download folder surrounded by quotes] [Reference Text File] [Delay/s] [Run in Background ('True' or 'False']
+python download_all_ebooks.py [Reference Text File] [Path to download folder surrounded by quotes]
 ```
-You do NOT need to add any of the optional arguments.
-
-Unless you use background mode (an older implementation of the code which you can activate using the fourth positional argument),
-you can continue to use your computer during this time.
-
-The code will open a chrome window which will download everything in the background.
-
-Note that you must close the Chrome window manually. This is to prevent the Chrome window from closing prematurely (before your downloads are complete).
-## Driver
-
-If your Google Chrome is not Chrome 81 (Check by going to "Help > About Chrome), download the appropriate driver from here:
-https://chromedriver.chromium.org/downloads
-
-Then replace the driver for your OS. The code automatically checks for your OS and uses the correct driver accordingly.
-
-## Stopping the Program prematurely
-
-To stop the program prematurely, go to the console and press "Ctrl + C".
-
-To continue where you left off, pass in a reference text file with the remaining links as an argument (second positional argument).
-
-## Example Usage
-Example (using default arguments):
+You do NOT need to add any of the optional arguments. In other words, because of the default arguments:
+``` 
+python download_all_ebooks.py
 ```
-python download_all_ebooks.py "C:\Downloads\Ebooks"
+is equivalent to:
 ```
-
-Example (continuing where we left off if code fails prematurely):
+python download_all_ebooks.py "Springer All Free Ebooks after failure.txt" "Springer PDFs"
 ```
-python download_all_ebooks.py "C:\Downloads\Ebooks" "Springer All Free Ebooks after failure.txt"
-```
-
-Example (using foreground mode with a longer delay):
-```
-python download_all_ebooks.py "C:\Downloads\Ebooks" "Springer All Free Ebooks after failure.txt" 5 false
-```
-
 
 ## Optional Arguments
+
+### Reference File Name
+
+You can pass a reference file name as a second argument.
+
+The default reference file is "Springer PDF Direct Download Links.txt", which has all the direct download links obtained 
+from the links in "Springer Ebooks.pdf" except for those which are not actually free at the time of writing.
 
 ### Path to download folder
 
 All the PDFs will be sent to this folder.
 
-### Reference File Name
-
-You can pass a reference file name as a second argument (in which case you should set the delay as well - default being 2).
-
-The default reference file is "Springer All Free Ebooks.txt", which has all the links from "Springer Ebooks.pdf.pdf" except for 
-two which are not actually free:
-
-- https://link.springer.com/book/10.1007%2F978-3-030-19128-3 (Literature and Medicine)
-- https://link.springer.com/book/10.1007%2F978-3-319-32185-1 (Business Statistics for Competitive Advantage with
-      Excel 2016)
-
-### Delay
-
-Set an optional argument for delay between actions (default 2 seconds). 
-
-This does not matter as much if you are running in the default Background mode. See below for notes on delay when not
-running in background mode.
-
-If running in background mode, the bot should take approximately 15 minutes. If not, the bot should take about 66 minutes to download every file.
-
-
-### Background
-
-If you set this to "False" or "F", this will run in the old mode which requires the window to be in focus. This is much 
-slower and not recommended.
-
-By default, this is set to "True" or "T".
-
-If you are using background mode, do *not* touch your computer during this time. You can leave the bot on during lunch or dinner. If you interfere with 
-your computer during this time, the bot may break. 
-
-This is because the bot in background mode does not only rely on Selenium, but also PyAutoGUI (Which relies on GUI elements appearing and being in focus).
-
-#### Delay while in Background Mode
-
-If background is set to "true", take note of the following for the delay argument:
-
-* At minimum, the delay should be set to 2 seconds. Set it slower if your internet or computer is slower.
-
-* Otherwise, the code will break frequently as it relies on various UI elements appearing on the screen before it can move on.
-
-* If no argument is passed, this will default to the maximum recommended speed of 2 seconds (approximately 66 minutes to
-download all files). 
-
-* Note that this delay is activated 4 times per file download (Updated 24/4/2020 7 PM UTC+8) (only 1 time when running in background mode).
